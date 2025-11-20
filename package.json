@@ -1,0 +1,21 @@
+{
+  "name": "localsense-bridge",
+  "version": "1.0.0",
+  "description": "Hedera testnet bridge for LocalSense Pi metrics",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "start:js": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.51.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
