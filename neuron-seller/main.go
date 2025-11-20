@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -197,13 +198,35 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	loadConfig()
 
+	server := buildHTTPServer()
+
+	if neuronStreamingEnabled() {
+		log.Printf("Neuron seller mode enabled; exposing shim on %s and starting Neuron SDK", server.Addr)
+		go func() {
+			if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalf("HTTP server error: %v", err)
+			}
+		}()
+
+		if err := runNeuronSellerNode(); err != nil {
+			log.Fatalf("Neuron seller exited with error: %v", err)
+		}
+		return
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalf("ListenAndServe: %v", err)
+	}
+}
+
+func buildHTTPServer() *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
 	mux.HandleFunc("/status", statusHandler)
 	mux.HandleFunc("/stream", streamHandler)
 
-	addr := ":" + sellerCfg.Port
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		log.Fatalf("ListenAndServe: %v", err)
+	return &http.Server{
+		Addr:    ":" + sellerCfg.Port,
+		Handler: mux,
 	}
 }
